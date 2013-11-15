@@ -1,0 +1,126 @@
+从GITServer拷贝一份CLONE：
+## 避免报错： error: SSL certificate problem
+[root@mylab tmp]# git config --global http.sslVerify false  
+[root@mylab tmp]# git-clone https://git.kernel.org/cgit/utils/cpu/mce/mcelog.git/ 
+Cloning into 'mcelog'...
+ 
+从GITServer更新CLONE：
+[root@mylab tmp]# cd mcelog/
+[root@mylab mcelog]# git pull http://git.kernel.org/cgit/utils/cpu/mce/mcelog.git/
+From http://git.kernel.org/cgit/utils/cpu/mce/mcelog
+ * branch            HEAD       -> FETCH_HEAD
+Already up-to-date.
+ 
+初始设定开发者信息：
+[root@mylab mcelog]# git config --global user.email "eyoutest@eyou.com"
+[root@mylab mcelog]# git config --global user.name "eyoutest"
+[root@mylab mcelog]# git config --list
+user.email=eyoutest@eyou.com
+user.name=eyoutest
+ 
+修改，添加本地源码文件：
+[root@mylab mcelog]# touch testfile{1,2,3}
+[root@mylab mcelog]# :> README
+ 
+向本地仓库添加文件并提交更改
+[root@mylab mcelog]# git-add testfile{1,2,3}
+[root@mylab mcelog]# git-commit
+[master 39d3291] empty README and add 3 new files
+4 files changed, 110 deletions(-)
+rewrite README (100%)
+create mode 100644 testfile1
+create mode 100644 testfile2
+create mode 100644 testfile3
+ 
+如果commit之前未add提交变更的文件，会自动提示Untracked files
+如果commit之前任何文件都未变更， 会自动提示nothing to commit, working directory clean
+如果commit之前只是删除了部分文件，可以直接commit提交
+ 
+查看本地仓库代码变更记录：
+[root@mylab mcelog]# git-log
+[root@mylab mcelog]# git-log -p
+ 
+推送本地变更到远程GIT-Server：
+[root@mylab mcelog]# git push
+ 
+===============================================================================
+ 
+将本地的eminfo1.0-beta1放到git中开发：
+ 
+ 
+ 
+创建初始化仓库：
+# cd /root/eminfo/
+# git init
+# tree -l .git
+ 
+基本配置：
+# git config --list
+# git config --global user.email zhang.elinks@gmail.com
+# git config --global user.name "Guangzheng Zhang"
+ 
+# git status      ==>  看到所有目录和代码都是： Untracked files
+# git add .       ==>  将所有文件添加到git暂存区管理
+# git status      ==>  此时看到所有等待commit的变更文件：Changes to be committed:
+ 
+# git commit -m "initial git bares @ 2013-8-1."      ==>  提交暂存区文件到本地仓库，添加简短说明
+[master (root-commit) 2776fde] initial git bares @ 2013-8-1.
+79 files changed, 52580 insertions(+)
+# git status      ==>  此时所有变更都已永久提交： nothing to commit, working directory clean
+ 
+ 
+ 
+===============================================================================
+ 
+ 
+将本地的eminfo上传到远程端的HTTP GIT Server做为初始仓库：
+ 
+server端：  先init一个空的 git bare
+# mkdir /var/www/html/eminfo.git/
+# cd /var/www/html/eminfo.git/
+# git init --bare
+# git-update-server-info    ### <如果还要使用HTTP方式的话>
+# cd /var/www/html/eminfo.git/hooks
+# cp post-update.sample post-update
+# ./post-update
+# chown apache:apache -R .
+# exit
+ 
+local端：      <SSH方式上传>
+# cd /root/eminfo.git/
+# git init
+# git add .
+# git commit -m "initial git bars @ xxxx-xx-xx"
+# git remote add origin_eminfo root@localhost:/var/www/html/eminfo.git
+# git config --list 
+remote.origin_eminfo.url=root@localhost:/var/www/html/eminfo.git
+remote.origin_eminfo.fetch=+refs/heads/*:refs/remotes/origin_eminfo/*
+# git push origin_eminfo master
+root@localhost's password:
+Counting objects: 86, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (79/79), done.
+Writing objects: 100% (86/86), 473.60 KiB, done.
+Total 86 (delta 8), reused 0 (delta 0)
+To root@localhost:/var/www/html/eminfo.git
+ * [new branch]      master -> master
+ 
+ 
+<HTTP>方式：  默认HTTP方式不允许push，需要重新编译git with USE_CURL_MULTI
+# git config remote.upload.url http://localhost/eminfo.git/
+# git push upload master
+fatal: git-push is not available for http/https repository when not compiled with USE_CURL_MULTI
+fatal: git-http-push failed
+ 
+ 
+ 
+ 
+免密码：
+cat /root/.netrc
+machine github.com
+login xxxx
+password yyyy
+ 
+ 
+ 
+=========================================================================
