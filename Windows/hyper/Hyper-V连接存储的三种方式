@@ -1,0 +1,22 @@
+存储系统内创建LUN展现给Microsoft Hyper-V的宿主主机后，最终让Hyper-V内运行的虚拟机运行在这些LUN上。本文介绍了存储端的LUN展现给Hyper-V主机的三种方式Virtual Hard Disk、Pass-Through Disk和Direct iSCSI Disk以及配置方法。 
+Virtual Hard Disk（VHD）:
+Virtual hard disk（VHD）是微软Hyper-V所使用到的一种文件格式，它用来存放虚拟机的操作系统和运行该操作系统的程序和文件。使用VHD，多个操作系统可以运行在一个Hyper-V宿主主机的NTFS文件系统之上，以文件的形式存在。这些操作系统还可以通过Hyper-V宿主主机访问不同的存储类型，例如iSCSI和CIFS。在存储端的LUN上使用VHD的步骤，展现给Hyper-V宿主主机、在LUN上创建文件系统（NTFS）、在文件系统上创建VHD文件，随后配置虚拟机使用到一个或者多个VHD文件。
+Hyper-V中可以创建三种类型的VHD文件：
+1.Fixed – 这种类型的VHD会文件系统上预先分配完所设置VHD的存储空间，无论创建的VHD里面是否存储数据。
+2.Expandable – 也叫“Dynamic”，“Dynamically Expandable“类型，这种类型的VHD只在LUN上存储实际的数据，并且随着数据的不断写入而相应增加，直到所配置的最大值。
+3.Differencing – 这个类型和Expandable VHD 类似，这种类型的VHD需要指定相应的Parent VHD, Differencing VHD中只含有所关联父VHD修改后的数据。
+根据不同的VHD类型，微软提供了向导工具，用来执行创建VHD的操作。不过需要注意的是，VHD最大支持的大小是2040GB，比2TB要小8GB。配置VHD的步骤是：
+1.在存储系统中创建LUN并且展现给Hyper-V宿主主机。
+2.在Hyper-V宿主主机的Disk Management工具中将裸盘设置为Online、创建分区、格式化为NTFS、配置盘符。最后，新创建的磁盘就可以用来存储虚拟机的配置文件，快照和VHD文件。
+3.关闭虚拟机。
+4.使用Hyper-V管理工具在新的磁盘上创建VHD，并且将VHD配置给相关的虚拟机。
+Pass-Through Disk：
+Pass-Through Disk支持虚拟机直接访问Hyper-V宿主主机连接的物理磁盘。然而这种访问方式，还是需要通过宿主操作系统的HAL硬件抽象层和HBA，也就是说存储的LUN需要对宿主主机可见。访问Pass-Through Disk的方式支持通用的块访问方式，例如iSCSI和Fibre Channel。配置Pass-Through Disk的步骤是：
+1.在存储系统中创建LUN并且展现给Hyper-V宿主主机。
+2.在Hyper-V宿主主机的Disk Management工具中将裸盘设置为offline。
+3.关闭虚拟机。
+4.使用Hyper-V管理工具选择相应的虚拟机，选择Physical Hard Disk为连接方式。
+Direct iSCSI Disk：
+Direct iSCSI Disk是通过虚拟机中安装的iSCSI Initiator直接通过iSCSI协议访问所连接的存储阵列中的LUN的方式。通过这种方式，LUN直接对于虚拟机本身可见，Hyper-V的主机不会看见相关的LUN。在虚拟机中配置Director iSCSI Disk的步骤和物理服务器上配置。
+本文作者为EMC中文技术社区（https://community.emc.com/go/chinese）技术版主。
+来源： <Hyper-V连接存储的三种方法 - 存储技术 - 中国云计算论坛-中国最大的云计算交流中心 - Powered by Discuz!NT>

@@ -1,0 +1,18 @@
+在 Windows Server 2012 中，管理员可以直接在Server Core版本和GUI版本之间切换，不需要在进行重装系统。简化了管理员选择操作系统界面版本的复杂程度和今后进行切换的难易程度，这些操作只需要Powershell就可以完成。
+ 
+1.首先，来看看在GUI界面下切换到Server Core的操作，打开Powershell，执行Uninstall-WindowsFeature Server-Gui-Mgmt-Infra -Restart，命令完成后会自动重启服务，即切换为Server Core界面
+ 
+2.重启完毕后，登录到服务器，在命令行执行sconfig进入到服务器配置，在这里可以对服务器进行配置，能够执行修改计算机名、加入域，网络设置等操作。也可以运行MMC.exe并使用任何管理单元。
+ 
+ 
+3.接下来，退出到命令行，输入powershell,准备进行GUI界面的还原。
+ 
+4.在powershell中执行Install-WindowsFeature Server-Gui-Shell –Restart来完成GUI界面的安装，并自动重启.
+ 
+5.重启完后，又回到了GUI界面。
+ 
+ 
+方法是：在CMD里面直接输入“sconfig”，根据显示出来的菜单进行操作。
+ 
+ 
+net stop "Windows Firewall/Internet Connection Sharing (ICS)"
