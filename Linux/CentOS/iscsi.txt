@@ -1,0 +1,53 @@
+1 启动iscsi守护进程
+#service iscsi start
+默认情况下，系统启动后此进程会自动运行
+2 发现目标
+默认情况下，iscsi发起方和目标方之间通过端口3260连接。假设已知iscsi的目标方IP是192.168.1.1，运行下列命令：
+#chkconfig iscsi on；chkconfig iscsi --list （查看ISCSI启动状态）
+#iscsiadm -m discovery -t sendtargets -p 192.168.1.1:3260
+此时找到拥有一个目标（target）
+192.168.1.1:3260,1 iqn.1997-05.com.test:raid
+被发现的目标也叫做节点
+3登入节点
+以上面被发现的目标为例
+# iscsiadm -m node –T iqn.1997-05.com.test:raid -p 192.168.1.1：3260 -l
+其中iqn.1997-05.com.test:raid是目标名
+如果要在系统启动时自动登入
+# iscsiadm -m node –T iqn.1997-05.com.test:raid -p 192.168.1.1:3260 --op update -n node.startup -v automatic
+登入节点后，运行
+#fdisk –l
+应该可以看到目标方的存储设备信息，如
+Disk /dev/sdb: 3489.8 GB, 3489862254592 bytes
+255 heads, 63 sectors/track, 424284 cylinders
+Units = cylinders of 16065 * 512 = 8225280 bytes
+Disk /dev/sdb doesn't contain a valid partition table
+/dev/sdb即为连接的iscsi存储设备
+登入需验证码的节点：
+（1）开启认证
+iscsiadm -m node -T [装置] -o update --name node.session.auth.authmethod --value=CHAP
+*.使用-o同--op
+（2）添加用户
+iscsiadm -m node -T [装置] --op update --name node.session.auth.username --value=[用户名]
+（3）添加密码
+iscsiadm –m node –T [装置] –op update –name node.session.auth.password –value=[密码]
+
+4 格式化设备
+如欲将设备格式化为ext3文件系统，运行
+# mkfs.ext3 /dev/sdb
+5挂接设备
+在/mnt下创建iscsi目录
+运行mount命令：
+# mount -t /dev/sdb /mnt/iscsi
+针对iscsi设备的特殊mount选项
+运行df –h可以看到：
+/dev/sdb 3.4T186M 3.4T 1% /mnt/iscsi
+iscsi设备被成功挂接，可以当作常规存储设备使用了。
+如果要在系统启动时自动挂接
+编辑/etc/fstab
+加入一行：
+/dev/sdb /mnt/iscsi ext3 default 0 0
+6 登出节点
+首先解除挂接
+#umount /mnt/iscsi
+登出
+# iscsiadm -m node –T iqn.1997-05.com.test:raid -p 192.168.1.1:3260 –u
