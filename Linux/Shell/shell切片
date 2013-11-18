@@ -1,0 +1,141 @@
+${} 在shell中可以对字符串进行一些类似 "切片" 的操作 ，一些情况下可以替代 awk 或 cut，而且使用 ${} 相比于通过管道调用外部命令更能提高执行速度。
+ 
+ 
+基础知识：
+ 
+${expression}一共有9种使用方法。
+${parameter:-word}
+${parameter:=word}
+${parameter:?word}
+${parameter:+word}
+上面4种可以用来进行缺省值的替换。
+ 
+${#parameter}
+上面这种可以获得字符串的长度。
+ 
+${parameter%word} 最小限度从后面截取word
+${parameter%%word} 最大限度从后面截取word
+${parameter#word} 最小限度从前面截取word
+${parameter##word} 最大限度从前面截取word
+上面4个就是用来截取字符串的方法了。
+ 
+第二种方法：${varible:n1:n2}:
+ 
+截取变量varible从n1开始n2长度的字符串。可以根据特定字符偏移和长度，使用另一种形式的变量扩展，来选择特定子字符串。试着在 bash 中输入以下行：
+$ EXCLAIM=cowabunga
+$ echo ${EXCLAIM:0:3}
+cow
+$ echo ${EXCLAIM:3:7}
+abunga
+ 
+有了着以上几种用法就不必使用cut命令来截取字符串了。
+在shell里面使用外部命令会降低shell的执行效率。特别是在循环的时候。
+ 
+ 
+ 
+ 
+ 
+ 
+示例：
+ 
+# file="/home/eyou/eminfo/conf/eminfo.ini"
+ 
+ 
+获取字符串长度：${#var}     共有4中方法：
+# echo ${#file}
+33
+# echo -n "$file" | wc -c
+33
+# expr ${file} : ".*"
+33
+# expr length ${file}
+33
+ 
+ 
+ 
+ 
+从左边开始匹配，删除左边的字符：    var#*char    var##*char
+ 
+# echo ${file#*/}              //从左边开始查找，第一个/左边的部分删掉
+home/eyou/eminfo/conf/eminfo.ini
+ 
+# echo ${file##*/}        //从左边开始查找，最后一个/左边的部分删掉(其实就是文件部分)
+eminfo.ini
+ 
+ 
+从右边开始匹配，删除右边的字符：   var%char*    var%%char*
+ 
+# echo ${file%/*}       //从右边开始查找，第一个/右边的部分删掉(其实就是文件夹部分)
+/home/eyou/eminfo/conf
+ 
+# echo ${file%%/*}      //从右边开始查找，最后一个/右边的部分删掉(其实全部都删完了，结果为空)
+ 
+ 
+注：记忆方法：
+ 
+# 是去掉左边字符(键盘上 # 在 $ 之左)
+% 是去掉右边字符(键盘上 % 在 $ 之右)
+一个符号是最小匹配
+两个符号是最大匹配
+ 
+ 
+从指定位置开始，截取指定长度的字符串： (起始位置从0开始起算)
+ 
+# echo ${file:5:10}          //从第6个字符起算，长度10个字符
+/eyou/emin 
+ 
+# echo ${file:0:${#file}}    //截取所有字符  也可以直接写成  ==>  ${file:0} 或者 ${file}
+/home/eyou/eminfo/conf/eminfo.ini
+ 
+# echo ${file:2}             //从第三个字符开始截取到最后
+ome/eyou/eminfo/conf/eminfo.ini
+ 
+# echo ${file::9}       //从最开始截取前9个字符
+/home/eyo      
+ 
+# echo ${file:0-10:8}      //从最后开始数，第10个字符开始，向右数8个字符长度
+eminfo.i
+ 
+# echo ${file:0-10:10}  //最后10个字符    ==>  ${file:0-10}
+eminfo.ini
+ 
+ 
+ 
+ 
+ 
+替换字符：
+ 
+# echo ${file/eminfo/eyou}      //替换第一个eminfo为eyou
+/home/eyou/eyou/conf/eminfo.ini 
+ 
+# echo ${file//eminfo/eyou} //替换所有的eminfo为eyou
+/home/eyou/eyou/conf/eyou.ini
+ 
+ 
+此外还可以使用 # 和 % 指定匹配串的位置是在头还是尾：
+ 
+# str="123abc4d"            // #匹配头  %匹配尾
+ 
+# echo ${str/#123/head}     // 只有当123在开头才替换
+headabc4d
+# echo ${str/#abc/head}     // abc不在开头，所以不处理，原样输出
+123abc4d
+ 
+# echo ${str/%4d/tail}      // 只有当4d在结尾才替换
+123abctail
+# echo ${str/%abc/tail}     // abc不在结尾，所以不处理，原样输出
+123abc4d
+ 
+ 
+ 
+测试字符串是否是数字：   删除所有数字字符，然后测试变量值是否为空
+# [ ! -z "${var}" -a -z "${var//[0-9]/}" ] && echo num || echo not_num
+not_num
+ 
+# var="012abc4d"
+# [ ! -z "${var}" -a -z "${var//[0-9]/}" ] && echo num || echo not_num
+not_num
+ 
+# var="012345"
+# [ ! -z "${var}" -a -z "${var//[0-9]/}" ] && echo num || echo not_num
+num
