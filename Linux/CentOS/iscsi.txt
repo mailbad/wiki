@@ -1,3 +1,8 @@
+iscsiadm -m discovery -t sendtargets -p 172.16.100.246
+iscsiadm -m node
+iscsiadm -m node -T iqn.2003-08.com.intel:zert-test-01 -p 172.16.100.246:3260,1 -l
+
+===============================================================================================================
 1 启动iscsi守护进程
 #service iscsi start
 默认情况下，系统启动后此进程会自动运行
